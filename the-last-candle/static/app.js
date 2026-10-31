@@ -176,7 +176,47 @@
   }
   function clockText(ms) { const s=Math.ceil(Math.max(0,ms)/1000); return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
   function candle(small=false,id='') { return `<div class="${small?'small-candle':'big-candle'}" ${id?`id="${id}"`:''} role="img" aria-label="The candle representing the shared countdown"><svg class="boil candle-svg" viewBox="0 0 100 195" aria-hidden="true"><path d="M26 78h48v102H26z" fill="#F4E9D8" stroke="#1A1A1A" stroke-width="6" stroke-linejoin="round"/><path d="M26 92q10 16 16 0q9 25 17 0q8 17 15 0" fill="none" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/><path d="M50 78V64" fill="none" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/><g class="flame flick"><path d="M50 17C69 36 69 55 50 64C31 56 31 36 50 17Z" fill="#E3B23C" stroke="#1A1A1A" stroke-width="5"/><path d="M50 40q8 10 0 16q-8-6 0-16" fill="#E8735A"/></g><path d="M16 184h68" fill="none" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round"/><rect class="wax-shade" x="30" y="94" width="40" height="0" fill="#6B4E71" opacity=".2" /></svg><div class="candle-time">${isSolo()?'25:00':'20:00'}</div></div>`; }
-  function topbar() { return `<header class="topbar"><div class="brand">THE LAST CANDLE</div><div class="top-controls"><button class="ghost-btn ${soundEnabled?'active':''}" data-action="sound" aria-pressed="${soundEnabled}" title="Sound ${soundEnabled?'on':'off'}">${soundEnabled?'♪ Sound on':'♫ Sound off'}</button>${state?`<span class="tag">${isSolo()?'SOLO RITUAL':esc(state.room.code)}</span>`:''}</div></header>`; }
+
+  let tlcNavOpen = false;
+
+  function tlcBackButton() {
+    if (!state && mode === 'landing') return '';
+    return `<button type="button" class="tlc-back-arrow"
+      data-action="tlc-back">← Back</button>`;
+  }
+
+  function tlcNavigationDialog() {
+    if (!tlcNavOpen) return '';
+    const chapter = {
+      foyer: 'The Foyer',
+      library: 'The Library',
+      crypt: 'The Crypt',
+      finale: 'Beneath Kaashi'
+    }[state?.stage] || 'Character selection';
+
+    return `<div class="tlc-nav-shade">
+      <section class="tlc-nav-dialog" role="dialog"
+        aria-modal="true" aria-labelledby="tlc-nav-title">
+        <div class="tlc-nav-eyebrow">
+          THE LAST CANDLE · YOUR POCKET MAP
+        </div>
+        <h2 id="tlc-nav-title">Where to?</h2>
+        <p>You are at <strong>${chapter}</strong>.</p>
+        <p>Returning cannot rewind shared puzzles or restore candle time.</p>
+        <div class="tlc-nav-actions">
+          <button type="button" class="tlc-nav-choice"
+            data-action="tlc-back-close">← Back to game</button>
+          <button type="button" class="tlc-nav-choice"
+            data-action="tlc-back-home">⌂ Return to home</button>
+        </div>
+        <p class="tlc-nav-note">
+          The live round keeps running if you leave.
+          Use your room link to rejoin while the server is running.
+        </p>
+      </section>
+    </div>`;
+  }
+  function topbar() { return `<header class="topbar"><div class="tlc-brandbar">${tlcBackButton()}<div class="brand">THE LAST CANDLE</div></div><div class="top-controls"><button class="ghost-btn ${soundEnabled?'active':''}" data-action="sound" aria-pressed="${soundEnabled}" title="Sound ${soundEnabled?'on':'off'}">${soundEnabled?'♪ Sound on':'♫ Sound off'}</button>${state?`<span class="tag">${isSolo()?'SOLO RITUAL':esc(state.room.code)}</span>`:''}</div></header>`; }
   function shell(content) { const theme = state?.stage==='finale' ? 'theme-kaashi' : state?.stage==='library' || state?.phase==='library_solved' ? 'theme-library' : state?.stage==='foyer' || state?.phase==='foyer_solved' ? 'theme-foyer' : mode==='landing' && !state ? 'theme-landing' : state?.phase==='stage3_preview' || state?.phase==='crypt_solved' || state?.phase==='stage4_preview' || state?.stage==='crypt' ? 'theme-crypt' : 'theme-selection'; return `<div class="app-shell ${theme}">${topbar()}<main class="app-main fade-in">${content}</main></div>${connectionState==='reconnecting'?'<div class="connection-warning" role="alert">Reconnecting to the manor… the candle continues to burn.</div>':''}`; }
   function waking() {
     return shell(`<section class="waking-scene" role="status" aria-live="polite">
@@ -399,7 +439,7 @@
     }
     updateClock();
   }
-  function render(){const current=(state?.phase||'landing');let content=mode==='room-reset'&&!state?resetRoom():state?(isSolo()?(current==='lobby'?soloLobby():current==='playing'&&!state.me.ack?soloRoleReveal():current==='playing'?(state.stage==='library'?library():state.stage==='crypt'?cryptStage():state.stage==='finale'?finaleStage():soloFoyer()):current==='foyer_solved'?solved():current==='library_solved'?librarySolved():current==='crypt_solved'?cryptSolved():current==='won'?finaleWin():current==='finale_reveal'?finaleStage():current==='stage4_preview'?stage4Preview():current==='stage3_preview'?stage3Preview():current==='stage2_preview'?soloPreview():current==='lost'?finaleLost():soloLobby()):(current==='lobby'?lobby():current==='playing'&&!state.me.ack?roleReveal():current==='playing'?(state.stage==='library'?library():state.stage==='crypt'?cryptStage():state.stage==='finale'?finaleStage():foyer()):current==='foyer_solved'?solved():current==='library_solved'?librarySolved():current==='crypt_solved'?cryptSolved():current==='won'?finaleWin():current==='finale_reveal'?finaleStage():current==='stage4_preview'?stage4Preview():current==='stage3_preview'?stage3Preview():current==='stage2_preview'?preview():current==='lost'?finaleLost():lobby())):(connectionState==='waking'||connectionState==='reconnecting'||connectionState==='connecting'?waking():landing());const oldDeck=document.querySelector('.character-deck');if(oldDeck)deckScroll=oldDeck.scrollLeft;app.innerHTML=content;const newDeck=document.querySelector('.character-deck');if(newDeck)newDeck.scrollLeft=deckScroll;if(state?.stage==='finale' && state.finale?.enteredAt){const wait=4600-(Date.now()+serverOffset-state.finale.enteredAt);if(wait>0)setTimeout(()=>{document.querySelector('.kaashi-intro-overlay')?.remove();},wait);}if(current==='crypt_solved'){setTimeout(()=>{const b=document.querySelector('[data-action=continue-crypt]');if(b)b.disabled=false;},Math.max(10,3100-(Date.now()+serverOffset-(state?.solvedAt||Date.now()))));}if(current==='library_solved'){setTimeout(()=>{const btn=document.querySelector('[data-action=continue-library]');if(btn)btn.disabled=false;},Math.max(10,3700-(Date.now()+serverOffset-(state?.solvedAt||Date.now()))));}if(current==='foyer_solved'){setTimeout(()=>{document.querySelector('.door-frame .door')?.classList.add('open');document.querySelector('.door-frame .door-glow')?.classList.add('on');},110);setTimeout(()=>{const btn=document.querySelector('[data-action=continue]');if(btn)btn.disabled=false;},Math.max(10,2500-(Date.now()+serverOffset-(state?.solvedAt||Date.now()))));}if(state?.story?.ghost?.id==='foyer')setHoraceFace(state.story.ghost.closed?'happy':state.story.ghost.coldUntil?'sad':state.story.ghost.history?.at(-1)?.mood==='pleased'?'happy':state.story.ghost.history?.at(-1)?.mood||'nervous');updateClock();typeGhostLine();const c=document.getElementById('chat-messages');if(c)c.scrollTop=c.scrollHeight;}
+  function render(){const current=(state?.phase||'landing');let content=mode==='room-reset'&&!state?resetRoom():state?(isSolo()?(current==='lobby'?soloLobby():current==='playing'&&!state.me.ack?soloRoleReveal():current==='playing'?(state.stage==='library'?library():state.stage==='crypt'?cryptStage():state.stage==='finale'?finaleStage():soloFoyer()):current==='foyer_solved'?solved():current==='library_solved'?librarySolved():current==='crypt_solved'?cryptSolved():current==='won'?finaleWin():current==='finale_reveal'?finaleStage():current==='stage4_preview'?stage4Preview():current==='stage3_preview'?stage3Preview():current==='stage2_preview'?soloPreview():current==='lost'?finaleLost():soloLobby()):(current==='lobby'?lobby():current==='playing'&&!state.me.ack?roleReveal():current==='playing'?(state.stage==='library'?library():state.stage==='crypt'?cryptStage():state.stage==='finale'?finaleStage():foyer()):current==='foyer_solved'?solved():current==='library_solved'?librarySolved():current==='crypt_solved'?cryptSolved():current==='won'?finaleWin():current==='finale_reveal'?finaleStage():current==='stage4_preview'?stage4Preview():current==='stage3_preview'?stage3Preview():current==='stage2_preview'?preview():current==='lost'?finaleLost():lobby())):(connectionState==='waking'||connectionState==='reconnecting'||connectionState==='connecting'?waking():landing());const oldDeck=document.querySelector('.character-deck');if(oldDeck)deckScroll=oldDeck.scrollLeft;app.innerHTML=content+tlcNavigationDialog();const newDeck=document.querySelector('.character-deck');if(newDeck)newDeck.scrollLeft=deckScroll;if(state?.stage==='finale' && state.finale?.enteredAt){const wait=4600-(Date.now()+serverOffset-state.finale.enteredAt);if(wait>0)setTimeout(()=>{document.querySelector('.kaashi-intro-overlay')?.remove();},wait);}if(current==='crypt_solved'){setTimeout(()=>{const b=document.querySelector('[data-action=continue-crypt]');if(b)b.disabled=false;},Math.max(10,3100-(Date.now()+serverOffset-(state?.solvedAt||Date.now()))));}if(current==='library_solved'){setTimeout(()=>{const btn=document.querySelector('[data-action=continue-library]');if(btn)btn.disabled=false;},Math.max(10,3700-(Date.now()+serverOffset-(state?.solvedAt||Date.now()))));}if(current==='foyer_solved'){setTimeout(()=>{document.querySelector('.door-frame .door')?.classList.add('open');document.querySelector('.door-frame .door-glow')?.classList.add('on');},110);setTimeout(()=>{const btn=document.querySelector('[data-action=continue]');if(btn)btn.disabled=false;},Math.max(10,2500-(Date.now()+serverOffset-(state?.solvedAt||Date.now()))));}if(state?.story?.ghost?.id==='foyer')setHoraceFace(state.story.ghost.closed?'happy':state.story.ghost.coldUntil?'sad':state.story.ghost.history?.at(-1)?.mood==='pleased'?'happy':state.story.ghost.history?.at(-1)?.mood||'nervous');updateClock();typeGhostLine();const c=document.getElementById('chat-messages');if(c)c.scrollTop=c.scrollHeight;}
   function updateClock(){let ms=timeLeft();const sc=document.querySelector('[data-select-clock]');if(sc&&state?.selection){sc.textContent=state.selection.deadlineAt===null?'45':String(Math.ceil(selectionRemaining()/1000)).padStart(2,'0');}const veil=document.querySelector('[data-veil-clue]');if(veil){const secs=Math.max(0,Math.ceil((Number(veil.dataset.expires)-(Date.now()+serverOffset))/1000));const t=veil.querySelector('[data-veil-time]');if(t)t.textContent=secs+'s';if(secs===0)veil.hidden=true;}for(const el of document.querySelectorAll('[data-timer],.candle-time'))el.textContent=clockText(ms);const maxMs=state?.timer?.durationMs || 1200000;for(const el of document.querySelectorAll('[data-progress]'))el.style.width=`${Math.max(0,Math.min(100,ms/maxMs*100))}%`;for(const el of document.querySelectorAll('.wax-shade'))el.style.height=`${Math.min(96, (1-ms/maxMs)*96)}%`;const holdProgress=document.querySelector('[data-hold-progress]');if(holdProgress&&state?.library?.holdStartedAt){holdProgress.style.width=`${Math.min(100,Math.max(0,(Date.now()+serverOffset-state.library.holdStartedAt)/30))}%`;}for(const beat of document.querySelectorAll('[data-beat]')){const idx=Number(beat.dataset.beat),rh=state?.library?.rhythm;if(rh)beat.classList.toggle('lit',rh.beatIndex===idx&&rh.beatGlowUntil>Date.now()+serverOffset);}const lensTime=document.querySelector('[data-lens-remaining]');if(lensTime&&state?.solo?.lensReadyAt)lensTime.textContent=(Math.max(0,state.solo.lensReadyAt-(Date.now()+serverOffset))/1000).toFixed(1)+'s';const flameHidden=ms<=0&&state&&state.phase!=='lobby';for(const el of document.querySelectorAll('.flame'))el.style.opacity=flameHidden?'0':'1';if(soundEnabled&&state?.phase==='playing'&&ms<120000&&!heartbeatInterval)startHeartbeat();if((!state||state.phase!=='playing'||ms>=120000)&&heartbeatInterval){clearInterval(heartbeatInterval);heartbeatInterval=null;}}
   function send(type,payload={}){if(ws?.readyState!==WebSocket.OPEN){showToast('No connection. Rejoining the manor…');return;}ws.send(JSON.stringify({type,...payload,actionId:newAction()}));}
   function dialStep(i,delta){dials[i]=((dials[i]-1+delta+12)%12)+1;const el=document.querySelector(`[data-dial-number="${i}"]`);if(el)el.textContent=dials[i];}
@@ -525,6 +565,31 @@
   function returnSeat(code){const t=savedToken(code);if(!t){showToast('No saved seat for this room on this browser.');return;}token=t;roomCode=code;connect('RESUME_SEAT',{code,token:t});}
   function leave(){intentionalClose=true;if(ws?.readyState===1)ws.close();ws=null;state=null;roomCode=null;seatId=null;token=null;history.replaceState({},'','/');mode='landing';connectionState='idle';render();}
   document.addEventListener('click',async (e)=>{const el=e.target.closest('[data-action]');if(!el)return;const a=el.dataset.action;
+
+    if(a==='tlc-back'){
+      if(!state){
+        mode='landing';
+        render();
+      }else{
+        tlcNavOpen=true;
+        render();
+      }
+      return;
+    }
+    if(a==='tlc-back-close'){
+      tlcNavOpen=false;
+      render();
+      return;
+    }
+    if(a==='tlc-back-home'){
+      if(!window.confirm(
+        'Return to home? The game and candle timer will continue.'
+      )) return;
+      tlcNavOpen=false;
+      leave();
+      return;
+    }
+
     if(a==='create-screen'){mode='create';render();}
     else if(a==='solo-create')connect('CREATE_SOLO');
     else if(a==='solo-equip')send('EQUIP_SOLO_ABILITY',{role:el.dataset.value});

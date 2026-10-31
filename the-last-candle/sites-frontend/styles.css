@@ -572,3 +572,55 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:4px solid 
 @media(max-width:850px){.stream-section-layout{grid-template-columns:repeat(2,minmax(0,1fr))}.stream-section-layout .stream-section:last-child:nth-child(odd){grid-column:1/-1;max-width:460px;width:100%;margin:0 auto}}
 @media(max-width:570px){.kaashi-chapter{padding:20px 12px 48px}.stream-section-layout{grid-template-columns:1fr;max-width:420px}.stream-section-layout .stream-section:last-child:nth-child(odd){grid-column:auto}.stream-grid{gap:6px}.stream-section{padding:14px}.solution-panels{grid-template-columns:1fr}.kaashi-intro-overlay h1{font-size:48px}.revealed-offer{flex-direction:column}}
 @media(prefers-reduced-motion:reduce){.kaashi-intro-overlay{display:none!important}.revealed-offer,.dawn-temple svg,.eleanor-goodbye{animation:none!important}}
+
+
+.tlc-brandbar {
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+}
+.tlc-back-arrow, .tlc-nav-choice {
+  cursor:pointer; appearance:none;
+  border:4px solid #1A1A1A;
+  background:#F4E9D8; color:#1A1A1A;
+  border-radius:16px; padding:9px 15px;
+  min-height:48px;
+  font:normal 22px 'Patrick Hand',cursive;
+  box-shadow:0 5px 0 #1A1A1A;
+}
+.tlc-back-arrow:active, .tlc-nav-choice:active {
+  transform:translateY(4px);
+  box-shadow:0 1px 0 #1A1A1A;
+}
+.tlc-nav-shade {
+  position:fixed; inset:0; z-index:9999;
+  background:rgba(26,26,26,.84);
+  display:grid; place-items:center;
+  padding:18px; overflow-y:auto;
+}
+.tlc-nav-dialog {
+  width:min(610px,100%);
+  background:#F4E9D8; color:#1A1A1A;
+  border:5px solid #1A1A1A;
+  border-radius:28px;
+  padding:clamp(20px,4vw,32px);
+  box-shadow:8px 8px 0 #1A1A1A;
+}
+.tlc-nav-dialog h2 {
+  font:normal 52px 'Patrick Hand',cursive;
+  margin:12px 0;
+}
+.tlc-nav-dialog p {
+  font:normal 25px/1.35 'Patrick Hand',cursive;
+}
+.tlc-nav-eyebrow {
+  font:700 12px Inter,system-ui,sans-serif;
+  letter-spacing:.08em;
+}
+.tlc-nav-actions {
+  display:flex; gap:14px;
+  flex-wrap:wrap; margin:18px 0;
+}
+.tlc-nav-note { font-size:18px!important; }
+@media(max-width:620px) {
+  .tlc-back-arrow {font-size:19px;min-height:42px;padding:7px 10px;}
+  .tlc-nav-choice {width:100%;}
+}
