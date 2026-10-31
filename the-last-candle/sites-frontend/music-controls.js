@@ -1,5 +1,8 @@
 (() => {
-  const audio = new Audio('/static/audio/background.mp3');
+  const musicSource = window.TLC_SITES_FRONTEND
+    ? 'https://the-last-candle.onrender.com/static/audio/background.mp3'
+    : '/static/audio/background.mp3';
+  const audio = new Audio(musicSource);
   audio.loop = true;
   audio.preload = 'none';
 
@@ -42,6 +45,7 @@
   function updateButton() {
     const button = document.getElementById('tlc-music-button');
     if (!button) return;
+    button.disabled = gameEnded;
     button.textContent = audio.paused ? '♫ Music off' : '♫ Music on';
     button.setAttribute('aria-pressed', String(!audio.paused));
   }
@@ -66,6 +70,31 @@
     updateButton();
   }
 
+
+  let gameEnded = false;
+  let wasInRoom = false;
+
+  document.addEventListener('tlc:game-phase', (event) => {
+    const {phase, hasRoom, connectionState} = event.detail;
+
+    if (hasRoom) wasInRoom = true;
+
+    const finished = phase === 'won' || phase === 'lost';
+    const leftGame = wasInRoom &&
+      !hasRoom && connectionState === 'idle';
+
+    if (finished || leftGame) {
+      gameEnded = finished;
+      wasInRoom = false;
+      audio.pause();
+      audio.currentTime = 0;
+      updateButton();
+    } else if (hasRoom) {
+      gameEnded = false;
+      updateButton();
+    }
+  });
+
   const app = document.getElementById('app');
   new MutationObserver(mount).observe(app, {
     childList:true,
@@ -75,12 +104,13 @@
 
   document.addEventListener('click', async (event) => {
     if (!event.target.closest('#tlc-music-button')) return;
+    if (gameEnded) return;
 
     if (audio.paused) {
       try {
         await audio.play();
       } catch (error) {
-        alert('Music could not play. Check the MP3 file.');
+        alert('Music error: ' + error.name + ': ' + error.message);
       }
     } else {
       audio.pause();
