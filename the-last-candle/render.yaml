@@ -1,0 +1,15 @@
+# Render FREE: Python WebSocket authority, in-memory rooms, no disk.
+# The existing Render URL can keep serving the UI until the Sites frontend
+# is verified. Afterwards set SERVE_FRONTEND=0 in Render env if desired.
+# ALLOWED_WS_ORIGINS must contain the exact published ChatGPT Sites origin.
+services:
+  - type: web
+    name: the-last-candle
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: '1'
