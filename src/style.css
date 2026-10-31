@@ -1,0 +1,119 @@
+:root {
+  color-scheme: dark;
+  --bg: #121013;
+  --panel: #1d1a20;
+  --text: #f3e7d1;
+  --accent: #f4b13d;
+  --danger: #e4603a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: radial-gradient(circle at top, #2d2733, var(--bg) 60%);
+  color: var(--text);
+}
+
+.game {
+  width: min(92vw, 460px);
+  background: color-mix(in srgb, var(--panel), black 8%);
+  border: 1px solid #39323f;
+  border-radius: 14px;
+  padding: 1.2rem;
+  text-align: center;
+}
+
+h1 {
+  margin: 0;
+}
+
+.subtitle {
+  margin-top: 0.2rem;
+  opacity: 0.85;
+}
+
+.stats {
+  display: flex;
+  justify-content: space-between;
+  margin: 1rem 0;
+  padding: 0.7rem;
+  border-radius: 8px;
+  background: #17141c;
+}
+
+.candle-wrap {
+  margin: 1.2rem auto;
+  position: relative;
+  height: 170px;
+  width: 120px;
+}
+
+.flame {
+  position: absolute;
+  left: 50%;
+  top: 22px;
+  transform: translateX(-50%);
+  width: 34px;
+  height: 56px;
+  border-radius: 50% 50% 40% 40%;
+  background: radial-gradient(circle at 55% 35%, #fff8d5 0, #ffd777 32%, #ff9f1a 70%, #de5f00 100%);
+  box-shadow: 0 0 26px 9px #ffb74a88;
+  transition: transform 120ms linear, opacity 120ms linear, filter 120ms linear;
+}
+
+.wick {
+  position: absolute;
+  left: 50%;
+  top: 72px;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 14px;
+  background: #232226;
+}
+
+.candle {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  width: 76px;
+  height: 88px;
+  border-radius: 10px;
+  background: linear-gradient(#ece5d8, #d2cabf);
+}
+
+.status {
+  min-height: 1.5rem;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 0.7rem;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 0.65rem 0.95rem;
+  color: #130f08;
+  background: var(--accent);
+  font-weight: 650;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+#restartBtn {
+  background: #dfd9cc;
+}
