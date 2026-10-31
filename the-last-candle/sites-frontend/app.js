@@ -286,8 +286,25 @@
   function libraryLevers(){
     const lib=state.library, mineHeld=lib.heldSeats?.includes(state.me.id),holdStarted=lib.holdStartedAt;
     if(isSolo()){
-      const r=lib.rhythm||{},pending=state.solo.targetLens;
-      return `<section class="lever-chamber solo-rhythm"><div class="eyebrow">THE THREE-BEAT SOLO RITE</div><h2>One hand. Three knocks.</h2><p>Remember Vesper’s cadence. Through Crowe’s Lens, press the brass lever, then <strong>release and re-press</strong> as each beat glows. The server judges the timing.</p><div class="rhythm-beats" aria-label="Three rhythm beats">${[0,1,2].map(i=>`<div class="rhythm-beat ${r.beatIndex>i?'complete':''} ${r.beatIndex===i&&r.beatGlowUntil>Date.now()+serverOffset?'lit':''}" data-beat="${i}"><span>✦</span><small>${i+1}</small><em>NOW</em></div>`).join('')}</div><div class="rhythm-progress">${r.beatIndex||0} / 3 BEATS COMPLETED</div>${!r.active?`<button class="btn" data-action="rhythm-start" ${pending||state.solo.activeLens!=='locksmith'?'disabled':''}>BEGIN THE RHYTHM →</button>`:`<button class="lever-button solo-lever ${r.held?'held':''}" data-lever-hold="solo" ${pending?'disabled':''} aria-label="Press and hold; release at each glow then press again" aria-pressed="${r.held}"><span>⚿</span><strong>${r.held?'HOLDING THE LEVER':'PRESS AND HOLD'}</strong></button><p class="thin-note">Start by pressing down. Release when the glow strikes; press again immediately. Missing a beat restarts this rite, but costs no extra penalty.</p>`}</section>`;
+      const r=lib.rhythm||{},pending=!!state.solo.targetLens;
+      const crowe=state.solo.activeLens==='locksmith';
+      return `<section class="lever-chamber solo-rhythm">
+        <div class="eyebrow">THE THREE-TAP SOLO RITE</div>
+        <h2>One hand. Three easy knocks.</h2>
+        <p>Use Crowe's Lens and tap the brass lever three times.
+        <strong>No timing or holding required.</strong></p>
+        <div class="rhythm-beats">
+        ${[0,1,2].map(i=>`<div class="rhythm-beat ${r.beatIndex>i?'complete':''}">
+        <span>${r.beatIndex>i?'✓':'✦'}</span>
+        <small>${i+1}</small></div>`).join('')}</div>
+        <div class="rhythm-progress">${r.beatIndex||0} / 3 TAPS COMPLETED</div>
+        ${!crowe||pending?
+        `<button class="btn" type="button" data-action="rhythm-switch"
+        ${pending?'disabled':''}>${pending?'SWITCHING TO CROWE…':'SWITCH TO CROWE →'}</button>`:
+        `<button class="lever-button solo-lever" type="button"
+        data-action="rhythm-tap">TAP THE LEVER ·
+        ${Math.min(3,(r.beatIndex||0)+1)} OF 3</button>`}
+        </section>`;
     }
     return `<section class="lever-chamber"><div class="eyebrow">ALL SOULS MUST HOLD · 3 SECONDS</div><h2>The Circle of Brass</h2><p>Every player must <strong>press and hold</strong> their lever together. If any hand releases or disconnects, the ritual resets for everyone.</p><div class="lever-party">${state.players.map(p=>`<div class="lever-seat ${lib.heldSeats.includes(p.id)?'held':''} ${!p.connected?'offline':''}" data-seat-id="${p.id}"><span class="lever-presence">${lib.heldSeats.includes(p.id)?'✦':'◇'}</span><b>${esc(p.name)}</b><small>${lib.heldSeats.includes(p.id)?'HOLDING':'AWAITING'}</small></div>`).join('')}</div><div class="lever-progress"><div class="lever-progress-fill" data-hold-progress style="width:0%"></div></div><p class="thin-note" data-hold-count>${lib.heldSeats.length} of ${state.players.length} hands on brass</p><button class="lever-button ${mineHeld?'held':''}" data-lever-hold="multi" aria-pressed="${mineHeld}" aria-label="Press and hold your lever for three seconds"><span>⚙</span><strong>${mineHeld?'KEEP HOLDING':'PRESS AND HOLD'}</strong></button><p class="thin-note">Touch, mouse, or keyboard: keep the lever down until the shelf opens.</p></section>`;
   }
@@ -538,7 +555,8 @@
     else if(a==='crypt-move')send('CRYPT_MOVE',{direction:el.dataset.value});
     else if(a==='stream-turn')send('ROTATE_STREAM_TILE',{section:Number(el.dataset.section),tile:Number(el.dataset.index)});
     else if(a==='offer')send('SEAL_OFFERING',{kind:el.dataset.kind,role:el.dataset.role||null});
-    else if(a==='rhythm-start')send('START_SOLO_RHYTHM');
+    else if(a==='rhythm-switch')send('SWITCH_LENS',{role:'locksmith'});
+    else if(a==='rhythm-tap')send('SOLO_RHYTHM_TAP');
     else if(a==='again')send('TRY_AGAIN');
     else if(a==='chat-toggle'){chatCollapsed=!chatCollapsed;render();}
   });

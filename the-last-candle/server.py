@@ -919,46 +919,26 @@ async def ws_handler(request):
                         changed = True
                         for index, offset in enumerate(room['libraryPuzzle']['beatOffsets']):
                             asyncio.create_task(send_solo_beat_after_delay(room['code'], r['startedAt'], index, offset))
-                    elif typ in ('SOLO_LEVER_DOWN', 'SOLO_LEVER_UP'):
+                    elif typ == 'SOLO_RHYTHM_TAP':
                         need_phase(room, 'playing')
                         if room['mode'] != 'solo' or room['stage'] != 'library' or room['library']['part'] != 'levers':
                             raise ValueError('The solo lever is unavailable')
                         if solo_switch_pending(room) or room['solo']['activeLens'] != 'locksmith':
-                            raise ValueError('Use Crowe’s Lens to operate the lever')
+                            raise ValueError('Switch to Crowe to tap the lever')
                         r = room['library']['rhythm']
                         if not r['active']:
-                            raise ValueError('Start the three-beat ritual first')
-                        i = r['beatIndex']
-                        beat_at = r['startedAt'] + room['libraryPuzzle']['beatOffsets'][i]
-                        if typ == 'SOLO_LEVER_UP':
-                            if not r['held'] or r['releasedAt'] is not None:
-                                raise ValueError('Hold the lever before releasing on a beat')
-                            if abs(now() - beat_at) > RHYTHM_BEAT_WINDOW_MS:
-                                reset_rhythm(room)
-                                effect = {'name': 'RHYTHM_MISSED'}
-                            else:
-                                r['held'] = False
-                                r['releasedAt'] = now()
-                                effect = {'name': 'RHYTHM_RELEASE', 'beatIndex': i}
+                            reset_rhythm(room)
+                            r = room['library']['rhythm']
+                            r['active'] = True
+                            r['startedAt'] = now()
+                        if not 0 <= r['beatIndex'] < 3:
+                            raise ValueError('The ritual is complete')
+                        r['beatIndex'] += 1
+                        if r['beatIndex'] == 3:
+                            solve_library(room)
+                            effect = {'name': 'LIBRARY_SOLVED'}
                         else:
-                            if r['held']:
-                                raise ValueError('Release the lever before pressing again')
-                            if r['releasedAt'] is None:
-                                if i > 0 or now() >= beat_at:
-                                    raise ValueError('The rhythm has already begun; start again')
-                                r['held'] = True
-                            elif now() - r['releasedAt'] <= RHYTHM_BEAT_WINDOW_MS:
-                                r['held'] = True
-                                r['releasedAt'] = None
-                                r['beatIndex'] += 1
-                                if r['beatIndex'] == 3:
-                                    solve_library(room)
-                                    effect = {'name': 'LIBRARY_SOLVED'}
-                                else:
-                                    effect = {'name': 'RHYTHM_BEAT_COMPLETE', 'beatIndex': r['beatIndex']}
-                            else:
-                                reset_rhythm(room)
-                                effect = {'name': 'RHYTHM_MISSED'}
+                            effect = {'name': 'RHYTHM_BEAT_COMPLETE', 'beatIndex': r['beatIndex']}
                         changed = True
                     elif typ == 'ROTATE_STREAM_TILE':
                         need_phase(room, 'playing')
@@ -1295,7 +1275,7 @@ async def index(request):
 
 
 async def health(request):
-    response = web.json_response({'status': 'ok', 'rooms': len(ROOMS), 'release': 'stage-4-complete', 'chapters': 4})
+    response = web.json_response({'status': 'ok', 'rooms': len(ROOMS), 'release': 'stage-4-complete', 'chapters': 4, 'patch': 'solo-three-easy-taps-v2'})
     if permitted_web_origin(request) and request.headers.get('Origin'):
         response.headers['Access-Control-Allow-Origin'] = request.headers['Origin']
         response.headers['Vary'] = 'Origin'
