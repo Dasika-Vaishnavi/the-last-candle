@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Last Candle</title>
+    <link rel="stylesheet" href="src/style.css" />
+  </head>
+  <body>
+    <main class="game">
+      <h1>The Last Candle</h1>
+      <p class="subtitle">Keep the flame alive until dawn.</p>
+
+      <section class="stats" aria-label="Game stats">
+        <div><strong>Flame:</strong> <span id="flameValue">100</span>%</div>
+        <div><strong>Time Left:</strong> <span id="timeValue">60</span>s</div>
+      </section>
+
+      <div class="candle-wrap" aria-live="polite">
+        <div id="flame" class="flame"></div>
+        <div class="wick"></div>
+        <div class="candle"></div>
+      </div>
+
+      <p id="statusText" class="status">Press "Stoke Flame" to begin.</p>
+
+      <section class="controls">
+        <button id="stokeBtn" type="button">Stoke Flame</button>
+        <button id="restartBtn" type="button">Restart</button>
+      </section>
+    </main>
+
+    <script src="src/game.js"></script>
+  </body>
+</html>
